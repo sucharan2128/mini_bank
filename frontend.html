@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Bank ATM</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #e7f2ff;
+      background:
+        radial-gradient(circle at top left, rgba(72, 139, 255, 0.35), transparent 30%),
+        linear-gradient(135deg, #07111f 0%, #12233b 55%, #1f3045 100%);
+    }
+
+    main {
+      width: min(1200px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0;
+    }
+
+    .atm-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+    }
+
+    .atm-machine {
+      width: 100%;
+      background: linear-gradient(145deg, #0f1c2c, #14263c 55%, #0f1828);
+      border: 1px solid #35506f;
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    .atm-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2f83ff, #1b6ad1);
+      color: white;
+      font-size: 1.2rem;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.4);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+      line-height: 1.1;
+      color: #ffffff;
+    }
+
+    .atm-top p,
+    .screen-subtitle {
+      margin-top: 4px;
+      color: #9db0c6;
+      font-size: 0.95rem;
+    }
+
+    .atm-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill,
+    .security-card,
+    .chip {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .status-pill {
+      min-width: 170px;
+      padding: 10px 14px;
+      text-align: right;
+      font-weight: 700;
+      color: #8cc9ff;
+    }
+
+    .security-card {
+      min-width: 260px;
+      padding: 10px 12px;
+      color: #dce9f8;
+      font-size: 0.95rem;
+      display: grid;
+      gap: 4px;
+    }
+
+    .security-card strong {
+      color: #7fbcff;
+    }
+
+    .atm-screen {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .atm-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      background: rgba(6, 15, 25, 0.78);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .menu {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .menu button,
+    .primary-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1c3046, #243d5b);
+      color: #f5f9ff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      text-align: left;
+      padding: 12px 14px;
+      transition: 0.18s ease;
+    }
+
+    .menu button:hover,
+    .menu button.active {
+      background: linear-gradient(135deg, #2e6dd4, #1f56a5);
+      transform: translateY(-1px);
+    }
+
+    .content {
+      padding: 22px;
+      min-height: 470px;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .content-header h2 {
+      font-size: 1.4rem;
+      color: #ffffff;
+    }
+
+    .chip {
+      padding: 8px 10px;
+      color: #8fc8ff;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #a7bad3;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px;
+      color: #fdfefe;
+      font: inherit;
+      background: rgba(255,255,255,0.08);
+    }
+
+    input:focus {
+      outline: 2px solid rgba(108, 181, 255, 0.28);
+      border-color: #69b8ff;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      max-width: 220px;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #1f9a6b, #16795a);
+      color: white;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .primary-btn:hover {
+      background: linear-gradient(135deg, #1a845d, #0f6547);
+    }
+
+    .secondary-btn {
+      background: linear-gradient(135deg, #2f5da8, #214a84);
+      color: white;
+      text-align: center;
+    }
+
+    .secondary-btn:hover {
+      background: linear-gradient(135deg, #254d8b, #183a6d);
+    }
+
+    .message {
+      min-height: 50px;
+      padding: 13px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.06);
+      color: #dfeaff;
+      font-weight: 700;
+      margin-top: 18px;
+    }
+
+    .otp-panel {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px dashed rgba(122, 219, 171, 0.28);
+      color: #dff9eb;
+    }
+
+    .otp-code {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      color: #ffffff;
+    }
+
+    .message.success {
+      border-color: rgba(122, 219, 171, 0.2);
+      background: rgba(21, 91, 60, 0.4);
+      color: #bff0d1;
+    }
+
+    .message.error {
+      border-color: rgba(255, 148, 148, 0.2);
+      background: rgba(103, 28, 28, 0.4);
+      color: #ffcfcf;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: #eaf3ff;
+    }
+
+    th {
+      background: rgba(255,255,255,0.08);
+      color: #8fc2ff;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .balance-card {
+      display: grid;
+      gap: 8px;
+      max-width: 420px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .balance-card strong {
+      color: #7af0b2;
+      font-size: 2rem;
+    }
+
+    input[type="password"] {
+      font-family: Consolas, monospace;
+      letter-spacing: 0.2em;
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100% - 20px, 1200px);
+        padding: 12px 0;
+      }
+
+      .atm-top,
+      .content-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .status-pill {
+        text-align: left;
+      }
+
+      .atm-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="atm-shell">
+    <section class="atm-machine" aria-label="Professional ATM interface">
+      <div class="atm-top">
+        <div class="brand-group">
+          <div class="brand-mark">◉</div>
+          <div>
+            <h1>Mini Bank ATM</h1>
+            <p>Secure self-service banking experience</p>
+          </div>
+        </div>
+        <div class="atm-badges">
+          <div class="security-card">
+            <strong>Security enabled</strong>
+            <span>PIN protection • 3 failed attempts locks account for 30s</span>
+          </div>
+          <div class="status-pill" id="accountCount">2 active accounts</div>
+        </div>
+      </div>
+
+      <div class="atm-screen">
+        <div class="atm-grid">
+          <nav class="panel menu" aria-label="Mini Bank actions">
+            <button class="active" data-view="create">Open New Account</button>
+            <button data-view="deposit">Deposit Money</button>
+            <button data-view="withdraw">Withdraw Money</button>
+            <button data-view="balance">Check Balance</button>
+            <button data-view="transfer">Transfer Funds</button>
+            <button data-view="accounts">View All Accounts</button>
+          </nav>
+
+          <section class="panel content">
+            <div class="content-header">
+              <div>
+                <h2 id="viewTitle">Open New Account</h2>
+                <p class="screen-subtitle">Please complete the required fields.</p>
+              </div>
+              <div class="chip">Secure</div>
+            </div>
+            <div id="viewBody"></div>
+            <div class="message" id="message">Choose an action to begin.</div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const MAX_ACCOUNTS = 50;
+    const API_BASE = "http://127.0.0.1:8000";
+    const SECURITY = {
+      inactivityMs: 60000
+    };
+
+    let accounts = [];
+    let inactivityTimer = null;
+    let otpState = { code: "", phone: "", expiresAt: 0 };
+
+    const views = {
+      create: {
+        title: "Open New Account",
+        render: renderCreateView,
+        afterRender: bindCreateForm
+      },
+      deposit: {
+        title: "Deposit Money",
+        fields: [
+          ["account", "Account Number", "number"],
+          ["pin", "PIN", "password"],
+          ["amount", "Deposit Amount (Rs)", "number"]
+        ],
+        action: depositMoney
+      },
+      withdraw: {
+        title: "Withdraw Money",
+        fields: [
+          ["account", "Account Number", "number"],
+          ["pin", "PIN", "password"],
+          ["amount", "Withdrawal Amount (Rs)", "number"]
+        ],
+        action: withdrawMoney
+      },
+      balance: {
+        title: "Check Balance",
+        render: renderBalanceView,
+        afterRender: bindBalanceForm,
+        fields: [
+          ["account", "Account Number", "number"],
+          ["pin", "PIN", "password"]
+        ],
+        action: checkBalance
+      },
+      transfer: {
+        title: "Transfer Funds",
+        fields: [
+          ["from", "Your Account Number", "number"],
+          ["pin", "PIN", "password"],
+          ["to", "Recipient Account Number", "number"],
+          ["amount", "Transfer Amount (Rs)", "number"]
+        ],
+        action: transferFunds
+      },
+      accounts: {
+        title: "All Accounts",
+        render: renderAccounts,
+        afterRender: loadAccountsFromApi
+      }
+    };
+
+    const viewTitle = document.querySelector("#viewTitle");
+    const viewBody = document.querySelector("#viewBody");
+    const message = document.querySelector("#message");
+    const accountCount = document.querySelector("#accountCount");
+    const menuButtons = document.querySelectorAll(".menu button");
+
+    menuButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        menuButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        renderView(button.dataset.view);
+      });
+    });
+
+    document.addEventListener("click", resetInactivityTimer);
+    document.addEventListener("keydown", resetInactivityTimer);
+    document.addEventListener("input", (event) => {
+      if (event.target.matches("input[name='pin']")) {
+        event.target.value = event.target.value.replace(/\D/g, "").slice(0, 4);
+      }
+      resetInactivityTimer();
+    });
+
+    function resetInactivityTimer() {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        setMessage("Session timed out for security. Please try again.", "error");
+        renderView("create");
+      }, SECURITY.inactivityMs);
+    }
+
+    function renderView(key) {
+      const view = views[key];
+      if (!view) return;
+
+      viewTitle.textContent = view.title;
+      setMessage("Ready.", "");
+
+      if (view.render) {
+        viewBody.innerHTML = view.render();
+        if (view.afterRender) {
+          view.afterRender();
+        }
+        return;
+      }
+
+      viewBody.innerHTML = `
+        <form id="actionForm">
+          <div class="form-grid">
+            ${view.fields.map(([id, label, type]) => `
+              <label>
+                ${label}
+                <input id="${id}" name="${id}" type="${type}" ${type === "number" ? 'step="0.01"' : ""} ${id === "pin" ? 'maxlength="4" inputmode="numeric" autocomplete="off"' : ""} required />
+              </label>
+            `).join("")}
+          </div>
+          <button class="primary-btn" type="submit">Submit</button>
+        </form>
+      `;
+
+      document.querySelector("#actionForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = Object.fromEntries(new FormData(event.currentTarget));
+        await view.action(formData);
+      });
+    }
+
+    function renderCreateView() {
+      return `
+        <form id="createForm">
+          <div class="form-grid">
+            <label>
+              Full Name
+              <input id="name" name="name" type="text" required />
+            </label>
+            <label>
+              Phone Number
+              <input id="phone" name="phone" type="tel" maxlength="10" inputmode="numeric" required />
+            </label>
+            <label>
+              Choose 4-digit PIN
+              <input id="pin" name="pin" type="password" maxlength="4" inputmode="numeric" autocomplete="off" required />
+            </label>
+            <label>
+              Initial Deposit (Rs)
+              <input id="amount" name="amount" type="number" step="0.01" required />
+            </label>
+            <label>
+              OTP
+              <input id="otp" name="otp" type="text" maxlength="4" inputmode="numeric" autocomplete="off" required />
+            </label>
+          </div>
+          <div class="otp-panel" id="otpPanel" hidden></div>
+          <div class="action-row">
+            <button class="secondary-btn" type="button" id="sendOtpBtn">Send OTP</button>
+            <button class="primary-btn" type="submit">Open Account</button>
+          </div>
+        </form>
+      `;
+    }
+
+    function bindCreateForm() {
+      const form = document.querySelector("#createForm");
+      const sendOtpBtn = document.querySelector("#sendOtpBtn");
+      const phoneInput = document.querySelector("#phone");
+      const otpInput = document.querySelector("#otp");
+      const otpPanel = document.querySelector("#otpPanel");
+
+      if (!form || !sendOtpBtn || !phoneInput || !otpInput || !otpPanel) return;
+
+      phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+      });
+
+      sendOtpBtn.addEventListener("click", async () => {
+        const phone = phoneInput.value.trim().replace(/\D/g, "");
+
+        if (!/^\d{10}$/.test(phone)) {
+          setMessage("Please enter a valid 10-digit phone number.", "error");
+          otpPanel.hidden = true;
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/api/otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone })
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Could not send OTP.");
+
+          otpState.code = result.otp;
+          otpState.phone = phone;
+          otpState.expiresAt = Date.now() + 120000;
+          otpPanel.hidden = false;
+          otpPanel.innerHTML = `<strong>OTP sent successfully</strong><br />Phone: ${phone}<br /><div class="otp-code">${otpState.code}</div>`;
+          otpInput.value = otpState.code;
+          otpInput.focus();
+          setMessage(`OTP sent to ${phone}. Use code ${otpState.code}.`, "success");
+        } catch (error) {
+          setMessage(error.message || "The banking API is unavailable.", "error");
+        }
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(form));
+        await openAccount(data);
+      });
+    }
+
+    function renderBalanceView() {
+      return `
+        <form id="balanceForm">
+          <div class="form-grid">
+            <label>
+              Account Number
+              <input id="account" name="account" type="number" required />
+            </label>
+            <label>
+              PIN
+              <input id="pin" name="pin" type="password" maxlength="4" inputmode="numeric" autocomplete="off" required />
+            </label>
+          </div>
+          <button class="primary-btn" type="submit">Check Balance</button>
+        </form>
+      `;
+    }
+
+    function bindBalanceForm() {
+      const form = document.querySelector("#balanceForm");
+      if (!form) return;
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = Object.fromEntries(new FormData(form));
+        await checkBalance(formData);
+      });
+    }
+
+    function findAccount(accountNumber) {
+      return accounts.find((account) => Number(account.accountNumber) === Number(accountNumber));
+    }
+
+    async function refreshAccounts() {
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts`);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load accounts.");
+        accounts = Array.isArray(result.accounts) ? result.accounts : [];
+        updateAccountCount();
+        return accounts;
+      } catch (error) {
+        accounts = [];
+        updateAccountCount();
+        setMessage(error.message || "The banking API is unavailable.", "error");
+        return [];
+      }
+    }
+
+    async function openAccount(data) {
+      const amount = Number(data.amount);
+      const phone = String(data.phone || "").trim();
+      const otp = String(data.otp || "").trim();
+
+      const currentAccounts = await refreshAccounts();
+      if (currentAccounts.length >= MAX_ACCOUNTS) {
+        setMessage("Bank is full. Cannot open more accounts.", "error");
+        return;
+      }
+
+      if (!data.name.trim()) {
+        setMessage("Please enter the account holder name.", "error");
+        return;
+      }
+
+      if (!/^\d{10}$/.test(phone)) {
+        setMessage("Please enter a valid 10-digit phone number.", "error");
+        return;
+      }
+
+      if (!/^\d{4}$/.test(data.pin)) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+
+      if (!otpState.code || otpState.phone !== phone || Date.now() > otpState.expiresAt) {
+        setMessage("Please request a fresh OTP first.", "error");
+        return;
+      }
+
+      if (otp !== otpState.code) {
+        setMessage("Invalid OTP. Please try again.", "error");
+        return;
+      }
+
+      if (amount < 0 || Number.isNaN(amount)) {
+        setMessage("Initial deposit cannot be negative.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ownerName: data.name.trim(),
+            phoneNumber: phone,
+            pin: data.pin,
+            otp,
+            initialDeposit: amount
+          })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not create account.");
+
+        await refreshAccounts();
+        otpState = { code: "", phone: "", expiresAt: 0 };
+        const otpPanel = document.querySelector("#otpPanel");
+        if (otpPanel) {
+          otpPanel.hidden = true;
+          otpPanel.innerHTML = "";
+        }
+        setMessage(`Account created successfully. Account No: ${result.accountNumber}.`, "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    async function depositMoney(data) {
+      const accountNumber = Number(data.account);
+      const amount = Number(data.amount);
+
+      if (!/^[0-9]+$/.test(String(data.account || ""))) {
+        setMessage("Please enter a valid account number.", "error");
+        return;
+      }
+      if (!/^\d{4}$/.test(String(data.pin || ""))) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+      if (amount <= 0 || Number.isNaN(amount)) {
+        setMessage("Amount must be positive.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts/${accountNumber}/deposit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: String(data.pin), amount })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Deposit failed.");
+
+        await refreshAccounts();
+        setMessage(`Rs${Number(result.balance).toFixed(2)} available in account ${accountNumber}.`, "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    async function withdrawMoney(data) {
+      const accountNumber = Number(data.account);
+      const amount = Number(data.amount);
+
+      if (!/^[0-9]+$/.test(String(data.account || ""))) {
+        setMessage("Please enter a valid account number.", "error");
+        return;
+      }
+      if (!/^\d{4}$/.test(String(data.pin || ""))) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+      if (amount <= 0 || Number.isNaN(amount)) {
+        setMessage("Amount must be positive.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts/${accountNumber}/withdraw`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: String(data.pin), amount })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Withdrawal failed.");
+
+        await refreshAccounts();
+        setMessage(`Withdrawal complete. Remaining balance: Rs${Number(result.balance).toFixed(2)}.`, "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    async function checkBalance(data) {
+      const accountNumber = Number(data.account);
+
+      if (!/^[0-9]+$/.test(String(data.account || ""))) {
+        setMessage("Please enter a valid account number.", "error");
+        return;
+      }
+      if (!/^\d{4}$/.test(String(data.pin || ""))) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts/${accountNumber}/balance`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: String(data.pin) })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not fetch balance.");
+
+        viewBody.innerHTML = `
+          <div class="balance-card">
+            <span>Account ${result.accountNumber}</span>
+            <h3>${result.ownerName}</h3>
+            <strong>Rs${Number(result.balance).toFixed(2)}</strong>
+          </div>
+        `;
+        setMessage("Balance retrieved successfully.", "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    async function transferFunds(data) {
+      const fromAccount = Number(data.from);
+      const toAccount = Number(data.to);
+      const amount = Number(data.amount);
+
+      if (!/^[0-9]+$/.test(String(data.from || ""))) {
+        setMessage("Please enter a valid sender account number.", "error");
+        return;
+      }
+      if (!/^[0-9]+$/.test(String(data.to || ""))) {
+        setMessage("Please enter a valid recipient account number.", "error");
+        return;
+      }
+      if (!/^\d{4}$/.test(String(data.pin || ""))) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+      if (amount <= 0 || Number.isNaN(amount)) {
+        setMessage("Amount must be positive.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts/${fromAccount}/transfer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: String(data.pin), toAccount, amount })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Transfer failed.");
+
+        await refreshAccounts();
+        setMessage(`Rs${Number(amount).toFixed(2)} transferred successfully. New balance: Rs${Number(result.balance).toFixed(2)}.`, "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    function renderAccounts() {
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Acc No</th>
+              <th>Name</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="3">Loading accounts…</td></tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadAccountsFromApi() {
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts`);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load accounts.");
+
+        accounts = Array.isArray(result.accounts) ? result.accounts : [];
+        const rows = accounts.map((account) => `
+          <tr>
+            <td>${account.accountNumber}</td>
+            <td>${account.ownerName}</td>
+            <td>Rs${Number(account.balance).toFixed(2)}</td>
+          </tr>
+        `).join("");
+        const tableBody = viewBody.querySelector("tbody");
+        if (tableBody) {
+          tableBody.innerHTML = rows || '<tr><td colspan="3">No accounts exist yet.</td></tr>';
+        }
+        updateAccountCount();
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    function updateAccountCount() {
+      const total = accounts.length;
+      accountCount.textContent = `${total} active account${total === 1 ? "" : "s"}`;
+    }
+
+    function setMessage(text, type) {
+      message.textContent = text;
+      message.className = `message ${type || ""}`.trim();
+    }
+
+    renderView("create");
+    refreshAccounts();
+    resetInactivityTimer();
+  </script>
+</body>
+</html>

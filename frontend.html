@@ -424,6 +424,7 @@
             <button data-view="deposit">Deposit Money</button>
             <button data-view="withdraw">Withdraw Money</button>
             <button data-view="balance">Check Balance</button>
+            <button data-view="delete">Delete Account</button>
             <button data-view="transfer">Transfer Funds</button>
             <button data-view="accounts">View All Accounts</button>
           </nav>
@@ -446,7 +447,20 @@
 
   <script>
     const MAX_ACCOUNTS = 50;
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = (() => {
+      const configuredUrl = window.BANK_API_URL || window.PUBLIC_BANK_API_URL;
+      if (!configuredUrl && window.location.protocol !== "file:" &&
+          window.location.hostname !== "localhost" &&
+          window.location.hostname !== "127.0.0.1") {
+        console.warn("Mini Bank is using the current origin as its API URL. For a shared public deployment, set window.BANK_API_URL to the deployed backend URL.");
+      }
+      return configuredUrl ||
+        (window.location.protocol === "file:" ||
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://127.0.0.1:8000"
+          : window.location.origin);
+    })();
     const SECURITY = {
       inactivityMs: 60000
     };
@@ -488,6 +502,16 @@
           ["pin", "PIN", "password"]
         ],
         action: checkBalance
+      },
+      delete: {
+        title: "Delete Account",
+        render: renderDeleteView,
+        afterRender: bindDeleteForm,
+        fields: [
+          ["account", "Account Number", "number"],
+          ["pin", "PIN", "password"]
+        ],
+        action: deleteAccount
       },
       transfer: {
         title: "Transfer Funds",
@@ -686,6 +710,34 @@
       });
     }
 
+    function renderDeleteView() {
+      return `
+        <form id="deleteForm">
+          <div class="form-grid">
+            <label>
+              Account Number
+              <input id="account" name="account" type="number" required />
+            </label>
+            <label>
+              PIN
+              <input id="pin" name="pin" type="password" maxlength="4" inputmode="numeric" autocomplete="off" required />
+            </label>
+          </div>
+          <button class="primary-btn" type="submit">Delete Account</button>
+        </form>
+      `;
+    }
+
+    function bindDeleteForm() {
+      const form = document.querySelector("#deleteForm");
+      if (!form) return;
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = Object.fromEntries(new FormData(form));
+        await deleteAccount(formData);
+      });
+    }
+
     function findAccount(accountNumber) {
       return accounts.find((account) => Number(account.accountNumber) === Number(accountNumber));
     }
@@ -870,6 +922,34 @@
           </div>
         `;
         setMessage("Balance retrieved successfully.", "success");
+      } catch (error) {
+        setMessage(error.message || "The banking API is unavailable.", "error");
+      }
+    }
+
+    async function deleteAccount(data) {
+      const accountNumber = Number(data.account);
+
+      if (!/^[0-9]+$/.test(String(data.account || ""))) {
+        setMessage("Please enter a valid account number.", "error");
+        return;
+      }
+      if (!/^\d{4}$/.test(String(data.pin || ""))) {
+        setMessage("PIN must be exactly 4 digits.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/accounts/${accountNumber}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: String(data.pin) })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Account deletion failed.");
+
+        await refreshAccounts();
+        setMessage(`Account ${accountNumber} was deleted successfully.`, "success");
       } catch (error) {
         setMessage(error.message || "The banking API is unavailable.", "error");
       }
